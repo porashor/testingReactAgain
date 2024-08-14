@@ -3,36 +3,58 @@ import {getAuth, createUserWithEmailAndPassword, updateProfile} from "firebase/a
 import { getFirestore } from 'firebase/firestore'
 import { doc, setDoc } from 'firebase/firestore'
 import AppData from "../Auth/Auth"
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const FormSi = () => {
 
     //state init
     const [name, setName] = useState("")
     const [password, setPassword] = useState("")
     const [email, setEmail] = useState("")
+    const [user, setUser] = useState(null)
+
+
+    //importent data
     const data = getAuth(AppData)
     const store = getFirestore(AppData)
 
+
+
+
+    //main creating function 
     async function onSub(e){
       e.preventDefault();
       try{
         await createUserWithEmailAndPassword(data, email, password)
-        const user = data.currentUser;
-        console.log(user)
+        const datax = data.currentUser;
+        setUser(datax?.displayName)
         console.log("registered successfully")
-        await updateProfile(user, {
+        //for update profile
+        await updateProfile(datax, {
           displayName: name
         })
-        if(user){
-          await setDoc(doc(store, name , user.uid), {
-            name: user.displayName,
-            email: user.email
+        //for setup data in firebase host
+        if(datax){
+          await setDoc(doc(store, name , datax.uid), {
+            name: datax.displayName,
+            email: datax.email
           })
         }
-        setTimeout(()=>console.log(user?.displayName),5000)
+        toast.success("registered successfully",{
+          position: "top-center"
+        })
       }catch(err){
         console.log(err)
+        toast.success("create failed",{
+          position: "bottom-center"
+        })
       }
     }
+    console.log(user)
+
+
+
+
     //rendering component
   return (
     <div className='text-xl bg-green-200 p-9 rounded-xl w-[40%] mx-auto my-10'>
@@ -46,6 +68,7 @@ const FormSi = () => {
 
       <button className='uppercase font-semibold bg-blue-600 text-white py-1 rounded-md w-full text-center' type='submit'>submit</button>
       </form>
+      <h1>{data.currentUser?.displayName} congrats for logIn</h1>
     </div>
   )
 }
